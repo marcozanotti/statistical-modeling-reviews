@@ -2,13 +2,9 @@
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 <!-- https://marcozanotti.github.io/election-forecasting-review/ -->
 
-The review article and the presentation for the course in Bayesian
-Statistics.
+The the presentations for the course in Statistical Modelling.
 
-[Dynamic Forecasting of US Elections - Review
-Article](https://marcozanotti.github.io/statistical-modeling-review/review/elecforec_rev.pdf)
-
-[Dynamic Forecasting of US Elections -
-Presentation](https://marcozanotti.github.io/statistical-modeling-review/presentation/elecforec_pres.pdf)
+[A Bayesian Approach to Modelling Graphical Vector Autoregressions -
+Presentation](https://marcozanotti.github.io/statistical-modeling-review/presentation/stat-mod1.pdf)
 
 [Bibliografy](https://github.com/marcozanotti/statistical-modeling-review/tree/main/material)
