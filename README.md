@@ -7,4 +7,13 @@ The the presentations for the course in Statistical Modelling.
 [A Bayesian Approach to Modelling Graphical Vector Autoregressions -
 Presentation](https://marcozanotti.github.io/statistical-modeling-reviews/presentation/stat_mod1.pdf)
 
+[Stat Modelling 2 -
+Presentation](https://marcozanotti.github.io/statistical-modeling-reviews/presentation/stat_mod2.pdf)
+
+[Stat Modelling 3 -
+Presentation](https://marcozanotti.github.io/statistical-modeling-reviews/presentation/stat_mod3.pdf)
+
+[Stat Modelling 4 -
+Presentation](https://marcozanotti.github.io/statistical-modeling-reviews/presentation/stat_mod4.pdf)
+
 [Bibliografy](https://github.com/marcozanotti/statistical-modeling-reviews/tree/main/material)

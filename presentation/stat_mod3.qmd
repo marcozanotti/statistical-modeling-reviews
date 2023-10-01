@@ -1,0 +1,29 @@
+---
+title: "SSSS"
+format:
+  jasa-pdf:
+    keep-tex: true  
+    journal:
+      blinded: false
+  jasa-html: default
+linestretch: 1.2
+date: 2023-10-24
+author:
+  - name: Marco Zanotti
+    affiliations:
+      - name: University of Milano Bicocca
+keywords:
+  - election forecast
+  - bayesian modelling
+  - trial-heat
+  - polls
+bibliography: bibliography.bib  
+---
+
+
+## Review
+
+
+
+
+
