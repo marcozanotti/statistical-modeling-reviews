@@ -184,155 +184,91 @@ regimes, economic growth
 
 \newpage
 \spacingset{1.9} % DON'T change the spacing!
-\ifdefined\Shaded\renewenvironment{Shaded}{\begin{tcolorbox}[frame hidden, sharp corners, borderline west={3pt}{0pt}{shadecolor}, breakable, enhanced, boxrule=0pt, interior hidden]}{\end{tcolorbox}}\fi
+\ifdefined\Shaded\renewenvironment{Shaded}{\begin{tcolorbox}[interior hidden, sharp corners, borderline west={3pt}{0pt}{shadecolor}, breakable, enhanced, frame hidden, boxrule=0pt]}{\end{tcolorbox}}\fi
 
-\setstretch{1}
+\setstretch{1.5}
 \hypertarget{summary}{%
 \section{Summary}\label{summary}}
 
 The paper focuses on the impact of different exchange rate regimes on
 economic growth and employs a variety of non-parametric matching methods
-to address potential biases in previous research. The key points and
-findings of the paper can be summarized as follows:
+to address potential biases in previous research. For this purpose a
+comprehensive dataset covering 164 countries from 1970 to 2007,
+considering the period after the collapse of the Bretton Woods fixed
+exchange rate system, and many control variables. Whereas previous
+studies used mainly linear regression models, likely introducing
+self-selection bias and other issues, the authors adopted matching
+techniques to estimate the Average Treatment Effect (ATE) of exchange
+rate regimes on economic growth, aiming to address self-selection
+bias.\\
+In this study, propensity score is employed to estimate the effect of
+exchange rate regimes on economic growth. This approach involves
+creating a probability score for each country to determine the
+likelihood of choosing a floating or fixed exchange rate regime based on
+observable covariates. Moreover, various matching methods, including
+nearest-neighbor matching, radius matching, kernel matching, and local
+linear matching, are tested to find suitable matches between countries
+with different exchange rate regimes.\\
+The results of all matching methods consistently indicate that the
+average treatment effect of floating exchange rate regimes on economic
+growth is statistically insignificant. In other words, the study finds
+no evidence to suggest that adopting a floating exchange rate regime
+leads to higher economic growth compared to a fixed exchange rate
+regime.
 
-\begin{enumerate}
-\def\labelenumi{\arabic{enumi}.}
-\item
-  Background: The paper discusses the ongoing debate in the
-  macroeconomic literature about how different exchange rate regimes
-  affect economic growth. Previous studies using linear regression
-  models have provided mixed results, possibly due to self-selection
-  bias and other issues.
-\item
-  Methodology: The paper introduces a new approach using matching
-  techniques to estimate the Average Treatment Effect (ATT) of exchange
-  rate regimes on economic growth. These methods aim to address
-  self-selection bias and other potential sources of bias.
-\item
-  Data: The study uses a comprehensive dataset covering 164 countries
-  from 1970 to 2007, considering the period after the collapse of the
-  Bretton Woods fixed exchange rate system. The key variables include
-  exchange rate regimes (fixed or floating), economic growth rates, and
-  several control variables like gross capital formation rate, trade as
-  a share of GDP, industrialization rate, inflation rate, exports and
-  imports as a share of GDP, and foreign direct investment as a share of
-  GDP.
-\item
-  Propensity Score Matching: The paper employs propensity score matching
-  to estimate the effect of exchange rate regimes on economic growth.
-  This approach involves creating a probability score for each country
-  to determine the likelihood of choosing a floating or fixed exchange
-  rate regime based on observable covariates.
-\item
-  Matching Methods: The study uses various matching methods, including
-  nearest-neighbor matching, radius matching, kernel matching, and local
-  linear matching, to find suitable matches between countries with
-  different exchange rate regimes.
-\item
-  Common Support: The research ensures that there is good overlap
-  (common support) between the control group (fixed exchange rate
-  regime) and the treatment group (floating exchange rate regime). This
-  common support ensures that observed characteristics of treatment
-  group countries can also be found among control group countries.
-\item
-  Findings: The results of all matching methods consistently indicate
-  that the average treatment effect of floating exchange rate regimes on
-  economic growth is statistically insignificant. In other words, the
-  study finds no evidence to suggest that adopting a floating exchange
-  rate regime leads to higher economic growth compared to a fixed
-  exchange rate regime.
-\item
-  Robustness Analysis: The paper conducts a robustness analysis using
-  Rosenbaum's bounds to account for potential hidden biases. The results
-  remain strong and robust, supporting the conclusion that exchange rate
-  regime choice does not significantly impact economic growth.
-\end{enumerate}
+\hypertarget{advantages-and-limitations}{%
+\section{Advantages and Limitations}\label{advantages-and-limitations}}
 
-In summary, this statistical paper employs innovative matching
-techniques to examine the effect of exchange rate regimes on economic
-growth, finding that there is no statistically significant difference in
-economic growth between countries with floating and fixed exchange rate
-regimes.
+The authors used an innovative methodology for the research area since
+by using propensity score and a variety of matching techniques, they
+addressed potential biases that may have affected previous researches.
+Moreover, the use of a comprehensive dataset covering 164 countries over
+a substantial time period provides a robust foundation for the analysis
+and the inclusion of various control variables helps control for
+potential confounding factors.\\
+Through a common support analysis, the research ensures that there is
+good overlap between the control group (fixed exchange rate regime) and
+the treatment group (floating exchange rate regime). This common support
+ensures that observed characteristics of treatment group countries can
+also be found among control group countries.\\
+The SUTVA assumptions is satisfied by the pre and post Bretton Woods
+regimes.\\
+Finally, The paper reports consistent results across different matching
+methods and conducts also a robustness analysis using Rosenbaum's bounds
+to assess the influence of hidden biases. This approach adds credibility
+to the findings and strengthens the conclusion that exchange rate
+regimes do not significantly affect economic growth.
 
-\hypertarget{main-advantages}{%
-\section{Main Advantages}\label{main-advantages}}
-
-\begin{enumerate}
-\def\labelenumi{\arabic{enumi}.}
-\item
-  Innovative Methodology: One of the significant advantages of the paper
-  is its innovative approach to examining the impact of exchange rate
-  regimes on economic growth. By using propensity score matching and a
-  variety of matching techniques, the paper addresses potential biases
-  that may have affected previous research.
-\item
-  Comprehensive Data: The use of a comprehensive dataset covering 164
-  countries over a substantial time period provides a robust foundation
-  for the analysis. The inclusion of various control variables adds
-  depth to the analysis and helps control for potential confounding
-  factors.
-\item
-  Robustness Analysis: The paper conducts a robustness analysis using
-  Rosenbaum's bounds to assess the influence of hidden biases. This
-  approach adds credibility to the findings and strengthens the
-  conclusion that exchange rate regimes do not significantly affect
-  economic growth.
-\item
-  Consistency in Results: The paper reports consistent results across
-  different matching methods, enhancing the reliability of the findings.
-  The fact that various techniques yield similar conclusions adds to the
-  paper's credibility.
-\end{enumerate}
-
-\hypertarget{main-drawbacks}{%
-\section{Main Drawbacks}\label{main-drawbacks}}
-
-\begin{enumerate}
-\def\labelenumi{\arabic{enumi}.}
-\item
-  Data Limitations: While the paper utilizes a comprehensive dataset,
-  economic data can be subject to various limitations, such as
-  measurement errors and reporting biases. It's important to acknowledge
-  the potential limitations of the data source and discuss their
-  implications.
-\item
-  Assumption of Common Support: The paper relies on the assumption of
-  common support between control and treatment groups. While this is a
-  crucial assumption in propensity score matching, the paper should
-  provide a robustness analysis to explore the sensitivity of results to
-  variations in this assumption.
-\item
-  Limited Causality Exploration: The paper primarily focuses on
-  estimating the association between exchange rate regimes and economic
-  growth. It may benefit from discussing potential mechanisms or
-  channels through which exchange rate regimes might affect growth,
-  providing more insights into the economic theory behind the findings.
-\item
-  Extrapolation of Findings: The paper concludes that there is no
-  significant impact of exchange rate regimes on economic growth.
-  However, it's essential to recognize that the findings may not apply
-  universally across all time periods, countries, or economic contexts.
-  Some discussion of the potential limitations of generalizing these
-  findings could enhance the paper's completeness.
-\item
-  Policy Implications: The paper could benefit from a discussion of the
-  policy implications of its findings. While it suggests that exchange
-  rate regimes do not significantly affect growth, policymakers might
-  still be interested in understanding the broader economic implications
-  of different exchange rate policies.
-\end{enumerate}
+On the limitation side, instead, the paper relies on the assumption of
+common support between control and treatment groups. While this is a
+crucial assumption in propensity score matching, the paper should
+provide some check analysis to explore the sensitivity of results to
+variations in this assumption.\\
+Moreover, the authors are dealing with a panel dataset, hence the
+classic matching methods used may not be very appropriate since they
+lack to consider the time dimension. For instance, one may refine the
+matching first selecting a set of control observations from other units
+in the same time period that have an identical treatment history for a
+specified time span so that matched control observations become similar
+to the treated observation in terms of covariate history. Furthermore,
+it is not clear whether the authors used a multilevel model to estimate
+the propensity score. This kind of approach could improve significantly
+the estimation since it considers also the time variability of the
+covariates. Finally, the paper concludes that there is no significant
+impact of exchange rate regimes on economic growth. However, it's
+essential to recognize that the findings may not apply universally
+across all time periods, countries, or economic contexts. Some
+discussion of the potential limitations of generalizing these findings
+could enhance the paper's completeness.
 
 \hypertarget{conclusion}{%
 \section{Conclusion}\label{conclusion}}
 
 In conclusion, the paper introduces an innovative methodology and uses a
 comprehensive dataset to examine the impact of exchange rate regimes on
-economic growth. However, it is essential to acknowledge data
-limitations, assumptions made in the analysis, and potential
-generalizability issues. Overall, the paper makes a valuable
-contribution to the empirical literature on exchange rate regimes and
-economic growth but should be interpreted within the context of its
-limitations.
+economic growth. Overall, the paper makes a valuable contribution to the
+empirical literature on exchange rate regimes and economic growth but
+should be interpreted within the context of its limitations.
 
 
 
