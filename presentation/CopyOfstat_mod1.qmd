@@ -1,0 +1,80 @@
+---
+title: "A Bayesian Approach to Modelling Graphical Vector Autoregressions"
+author: "Marco Zanotti"
+institute: "University Milano-Bicocca"
+format: 
+ beamer:
+  theme: Dresden
+  colortheme: default
+  navigation: horizontal
+  header-includes: |
+       \titlegraphic{\includegraphics[width=0.2\paperwidth]{img/logo-giallo.png}}
+       \setbeamertemplate{page number in head/foot}[totalframenumber]
+bibliography: bibliography.bib  
+link-citations: TRUE
+---
+
+
+## Granger Causality Graphs
+- Definition of Granger causality graphs in VAR models
+- Conditions specified in Definition 1 for a graph to be a Granger causality graph
+
+## Parametric Characterization (Lemma 1)
+- Presentation of Lemma 1, providing parametric characterization of Granger causality graphs
+- Importance of Lemma 1 in modeling VAR(G, k) processes
+
+## Unknown Quantities in VAR(G, k)
+- Discussion of unknown quantities in a VAR(G, k) process
+- Inference on G and k before modeling parameters
+
+
+
+- Joint modeling of Granger causality and lag length
+
+
+--------------------------------------------------------------------------
+
+
+
+
+## Joint Posterior Distribution
+- Introduction to the joint posterior distribution of (G, k)
+- Bayesian formula for calculating the joint posterior distribution (equation (3))
+
+
+
+## Prior Distributions
+- Role of prior distributions in Bayesian analysis
+- Prior distribution for G and k (equation (4))
+
+
+
+## Model-Based Reference Prior
+- Explanation of the model-based reference prior (equation (5))
+- Use without subjective assessment of prior hyperparameters
+
+
+
+## Fractional Bayes Approach
+- Introduction to the fractional Bayes approach
+- Concept of fractional marginal likelihood (FML) (equation (6))
+
+
+
+## Approximate FML (Lemma 2)
+- Presentation of Lemma 2, providing an approximate FML
+- Conditions for application and calculation of the approximation
+
+
+
+## Maximum Likelihood Estimation
+- Discussion of maximum likelihood estimation for VAR(G, k) models
+- Obtaining the maximum likelihood estimate R^ of the covariance matrix R
+
+
+
+## Cases of Exact FML
+- Mention of cases where the approximate FML equals the exact FML
+- Validity of the approximation (Theorem 3)
+
+

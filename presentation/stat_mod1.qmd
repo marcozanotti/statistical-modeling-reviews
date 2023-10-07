@@ -14,75 +14,142 @@ bibliography: bibliography.bib
 link-citations: TRUE
 ---
 
+
 ## Contents
 
-1.  VARs
+1. VARs
 
-2.  Graphical VARs
+2. Graphical VARs
 
-3.  Bayesian Model Assessment for Graphical VARs
+3. Bayesian Model Assessment for Graphical VARs
 
-4.  Conclusions
+4. Conclusions
+
 
 
 # 1. VARs
 
-## Problem
 
-To predict **timely and accurately** the election results  
-\   
-**Strategical task** in the political area since political forces spend millions of 
-dollars in each candidate's campaign and need to know when and where to allocate 
-them  
-\    
-The **US**: presidential election is the result of the voting process in each state  
+## VAR Model
+
+Vector autoregressive (VAR) models are popular choice for studying the joint
+dynamics of multiple time series.  
+
+Consider $x_t$ as a $p$-dimensional vector of time-series at time $t$, a VAR 
+model is just a multivariate normal regression of $x_t$ on its own-lags
+$$ x_t = c + \sum_{i = 1}^{k} \Pi_i x_{t-i} + \epsilon_t \;\;\;\;\;\;\;\;\;\;\;\;\;\; (1)$$
+
+where $\Pi_i$ are $p \times p$ coefficient matrices determining the dynamics of 
+the system, $c$ is a deterministic vector of $p$ components and 
+$\epsilon_t \sim N_p(0,\Sigma)$. 
+
+
+## Example of VAR(1)
+
+A first order VAR model ($p = 1$) in two variables would be given by
+$$\begin{pmatrix} x_{1,t}\\x_{2,t} \end{pmatrix} = \begin{pmatrix} c_1\\c_2 \end{pmatrix} +  \begin{pmatrix} \pi_{11} & \pi_{12} \\ \pi_{21} & \pi_{22} \end{pmatrix} \begin{pmatrix} x_{1,t}\\x_{2,t} \end{pmatrix} + \begin{pmatrix} \epsilon_{1,t}\\\epsilon_{2,t} \end{pmatrix}$$  
+
+If, for example $\pi_{12} \neq 0$, this means that the history of $x_2$ helps 
+explaining $x_1$.  
+
+
+## Pros & Cons
+
+- Main advantage: simplicity. VAR models require no special structure since the 
+outcome variables are regressed on their own lagged variables.  
+  
+- Main disadvantage: large number of regression coefficients, $K(Kp + m)$. The 
+significant number of regression parameters is proportional to the number of 
+lags, hence interpretation may be difficult and may not be good when fitted to 
+small data.   
+  
+Several tools have been proposed to aid in the interpretation of VAR models, 
+most notably Impulse Response Functions (IRF) and Granger Causality tests (GC).  
+
+
+## Granger Causality
+
+The general idea behind Granger causality is that a variable $X$ 
+Granger causes $Y$ if past values of $X$ can help explain $Y$.  
+
+Of course, if Granger causality holds this does not guarantee that $X$ causes $Y$. 
+Nevertheless, if past values of $X$ have explanatory power for current values of 
+$Y$, it at least suggests that $X$ improves $Y$’s predictability.   
+
+In the context of a VAR model, testing for Granger causality simply implies to 
+test the significance of the cross-coefficients ($\pi_{12}$ and $\pi_{21}$ in 
+the VAR(1) example).
+
 
 
 # 2. Graphical VARs
 
-## Type of Data
+## Graphical Model
 
-Forecasting elections makes use of mainly two different types data:    
+Graphical models can be informally defined as statistical models represented in 
+the form of a graph, where the nodes (vertices) represents the variables and the
+presence of an edge between a pair of vertices means that the variables are in 
+some sense related.
 
-- **Fundamental indicators**, that is economic or political variables  
-\  
-- **Trial-heat polls**, that is surveys with trail-heat questions issued by 
-oﬀicial pollsters’ agency  
+Some advantages of a graphical model are:  
+
+- represents graphically the logical implication of the relationships  
+- suitable representation of the causal relationships using directed edges   
+- clarity of interpretation when analyzing complex interactions.  
+
+
+## DAG Model
+
+In cross-sectional data, the graph usually represents the conditional independence 
+structure of the system and (by symmetry) the edges are undirected. In time-series 
+data, the time dimension of a process makes it more feasible to consider directed 
+flow.  
+
+A Directed Acyclic Graph (DAG) is a collection $G = \{V,E\}$, where $V$ is the
+set of vertices and $E$ is the set of edges.
+
+![](img/dag.png){fig-align="center" width="100"}
+
+
+## Connecting DAG and VAR
+
+Given the VAR model in (1), there is a one-to-one relationship between the 
+$\Pi_i$ matrices and DAGs, that is
+$$x_{a,t-i} \rightarrow x_{b,t} \iff \Pi_i(a,b) \neq 0$$  
+
+Where $x_{a,t-i} \rightarrow x_{b,t}$ means that $x_{a,t-i}$ "causes" somehow $x_{b,t}$
+
+Hence, directed edges represent exactly the Granger causality relations.
+
+
+## Graphical VAR Model (Lemma 1)
+
+
+
+
+
+
+
+A Gaussian VAR process  satisfying Lemma 1 is said to belong to a graphical 
+Granger causal VAR model, VAR(G, k).
+
+
+
+
+
 
 
 # 3. Bayesian Model Assessment for Graphical VARs
-
-## Type of Models
-
-Over the years, three types of election forecasting models evolved:  
-
-- **Structural models**, econometric models based on fundamental indicators  
-  
-- **Trial-heat models**, econometric models relying on polls data  
-
-- **Bayesian models**, models that use polls data to update historical forecasts, 
-improving the performance of structural models through the incorporation of 
-voters preferences’ evolution  
-
-The variable of interest is usually the percentage election outcome of one of 
-the two major parties ($\pi_t$)  
 
 
 # 4. Conclusions
 
 ## Conclusions
 
-- A Bayesian approach produces **continuously revised forecasts** as new poll 
-data is released  
+- aaa
+- aaa
 
-- Forecasting using **both** structural variables and poll data outperform others  
-
-- In general, forecasts are accurate **within 2 months** before the election day  
-
-- It is **still difficult** to produce timely and accurate forecasts  
-
-- **Problems** arise in forecasting accuracy and uncertainty for states that are 
-polled few and in those days with no polls at all  
+![](img/dag2.png){fig-align="center" width="100"}
 
 
 ## Bibliografy
@@ -95,143 +162,3 @@ polled few and in those days with no polls at all
 \center Thank you! \center
 
 \
-
-
-
-
-## "Graphical Granger Causality for Gaussian Vector Autoregression"
-### A Bayesian Approach
-
-**Presenter:** Your Name
-**Affiliation:** Your Affiliation
-**Date:** Presentation Date
-
-
-
-## Introduction
-- Overview of the paper's topic
-- Significance of Granger causality in time series analysis
-- Introduction to graphical models in multivariate time series analysis
-
-
-
-## Gaussian Vector Autoregression (VAR)
-- VAR model equation (1)
-- Definitions: xt, Pi, et, etc.
-- Complexity of VAR models due to a large number of parameters
-
-
-
-## Traditional Tools for VAR Analysis
-- Traditional methods for VAR analysis (e.g., impulse-response functions)
-- Challenges in interpreting VAR models
-
-
-
-## Introduction to Graphical Models
-- Explanation of graphical models
-- Widespread use in cross-sectional data analysis
-- Components: Vertices and Edges
-
-
-
-## Graphical Models for Time Series
-- Need for graphical models in time series analysis
-- Use of directed edges (Granger causality) in time-series graphical models
-- Research gap in Bayesian methods for time series graphical models
-
-
-
-## Previous Research
-- Overview of prior research on graphical models for time series
-- References like Eichler (2002) and Dahlhaus and Eichler (2003)
-- Lack of Bayesian methods in this context
-
-
-
-## Focus on VAR Processes
-- Why the paper focuses on VAR processes
-- Tractability of statistical inference for VAR models
-- Joint modeling of Granger causality and lag length
-
-
-
-## Organization of the Paper
-- Structure of the paper
-- Overview of sections and their content
-
-
-
-## Granger Causality Graphs
-- Definition of Granger causality graphs in VAR models
-- Conditions specified in Definition 1 for a graph to be a Granger causality graph
-
-
-
-## Parametric Characterization (Lemma 1)
-- Presentation of Lemma 1, providing parametric characterization of Granger causality graphs
-- Importance of Lemma 1 in modeling VAR(G, k) processes
-
-
-
-## Unknown Quantities in VAR(G, k)
-- Discussion of unknown quantities in a VAR(G, k) process
-- Inference on G and k before modeling parameters
-
-
-
-## Joint Posterior Distribution
-- Introduction to the joint posterior distribution of (G, k)
-- Bayesian formula for calculating the joint posterior distribution (equation (3))
-
-
-
-## Prior Distributions
-- Role of prior distributions in Bayesian analysis
-- Prior distribution for G and k (equation (4))
-
-
-
-## Model-Based Reference Prior
-- Explanation of the model-based reference prior (equation (5))
-- Use without subjective assessment of prior hyperparameters
-
-
-
-## Fractional Bayes Approach
-- Introduction to the fractional Bayes approach
-- Concept of fractional marginal likelihood (FML) (equation (6))
-
-
-
-## Approximate FML (Lemma 2)
-- Presentation of Lemma 2, providing an approximate FML
-- Conditions for application and calculation of the approximation
-
-
-
-## Maximum Likelihood Estimation
-- Discussion of maximum likelihood estimation for VAR(G, k) models
-- Obtaining the maximum likelihood estimate R^ of the covariance matrix R
-
-
-
-## Cases of Exact FML
-- Mention of cases where the approximate FML equals the exact FML
-- Validity of the approximation (Theorem 3)
-
-
-
-## Conclusion
-- Summary of key points in the paper
-- Contributions and significance of the research
-
-
-
-## Questions
-- Open the floor for questions from the audience
-
-
-
-## Thank You
-- Express gratitude to the audience for their attention
