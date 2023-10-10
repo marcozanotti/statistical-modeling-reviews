@@ -10,8 +10,6 @@ format:
   header-includes: |
        \titlegraphic{\includegraphics[width=0.2\paperwidth]{img/logo-giallo.png}}
        \setbeamertemplate{page number in head/foot}[totalframenumber]
-bibliography: bibliography.bib  
-link-citations: TRUE
 ---
 
 
