@@ -14,7 +14,7 @@ Modelling.
 [Presentation](https://marcozanotti.github.io/statistical-modeling-reviews/stat_mod2/stat_mod2.pdf)
 
 [R
-Code](https://marcozanotti.github.io/statistical-modeling-reviews/stat_mod2/stat_mod2.r)
+Code](https://marcozanotti.github.io/statistical-modeling-reviews/stat_mod2/stat_mod2.R)
 
 ## Statistical Modelling 3 - Verzillo
 
@@ -25,10 +25,10 @@ Code](https://marcozanotti.github.io/statistical-modeling-reviews/stat_mod2/stat
 [Presentation](https://marcozanotti.github.io/statistical-modeling-reviews/stat_mod4/stat_mod4.pdf)
 
 [R Code -
-HTML](https://marcozanotti.github.io/statistical-modeling-reviews/stat_mod2/stat_mod2.html)
+HTML](https://marcozanotti.github.io/statistical-modeling-reviews/stat_mod4/stat_mod4.html)
 
 [R Code -
-Rmd](https://marcozanotti.github.io/statistical-modeling-reviews/stat_mod2/stat_mod2.html)
+Qmd](https://marcozanotti.github.io/statistical-modeling-reviews/stat_mod4/stat_mod4.qmd)
 
 ## Bibliography
 
