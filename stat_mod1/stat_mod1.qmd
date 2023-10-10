@@ -108,7 +108,7 @@ flow.
 A Directed Acyclic Graph (DAG) is a collection $G = \{V,E\}$, where $V$ is the
 set of vertices and $E$ is the set of edges.
 
-![](img/dag.png){fig-align="center" width="100"}
+![](img/dag1.png){fig-align="center" width="150"}
 
 
 ## Connecting DAG and VAR
@@ -119,37 +119,105 @@ $$x_{a,t-i} \rightarrow x_{b,t} \iff \Pi_i(a,b) \neq 0$$
 
 Where $x_{a,t-i} \rightarrow x_{b,t}$ means that $x_{a,t-i}$ "causes" somehow $x_{b,t}$
 
-Hence, directed edges represent exactly the Granger causality relations.
+Hence, directed edges represent the Granger causality relations.
 
 
-## Graphical VAR Model (Lemma 1)
+## Characterization of Graphical VARs
+
+For a Gaussian VAR process $x_t$ with a Granger causality graph $G(V,E)$, the 
+following two conditions hold:    
+
+1. $(a,b) \notin E_1 \iff \Pi_i(a,b) = 0, \;\; \forall i = 1, ..., k$
+2. $(a,b) \notin E_2 \iff \Sigma^{-1}(a,b) = 0$  
+
+where $E_1$ and $E_2$ are the sets of directed and undirected edges, and 
+$\Pi_i(a,b)$ is the $(a,b)$th element of $\Pi_i$.  
+
+A Gaussian VAR process satisfying these conditions is said to belong to a graphical 
+Granger causal VAR model, $VAR(G, k)$.
 
 
 
+# 3. Bayesian Graphical VARs
+
+## The $VAR(G,k)$ Problem
+
+The unknown quantities of a $VAR(G,k)$ process are:  
+
+- the underlying Granger causality graph $G$  
+- the number of lags $k$  
+- the modelling parameters $\Pi_1, ..., \Pi_k$ and $\Sigma$ (from now $\theta$)
+
+Inference on $G$ and $k$ is essentially a model determination problem and the 
+authors proposed a solution within a Bayesian framework.  
 
 
+## The Posterior of $VAR(G,k)$
+
+Following a Bayesian approach, the authors proposed a joint modeling of Granger 
+causality and lag length. The joint posterior distribution of $(G,k)$ 
+conditional on the observed time series $X$ can be written as  
+
+$$\pi(G,k | X) = \frac{m(G,k|X) \; p(G,k)}{\sum_{G \in \mathcal{G}} \sum_{k = 0}^{K} m(G,k|X) \; p(G,k)}$$
+
+where $p(G,k)$ is the joint prior of $G$ and $k$, and $m(G,k|X)$ is the marginal
+likelihood of the observed time series $X$.  
 
 
-A Gaussian VAR process  satisfying Lemma 1 is said to belong to a graphical 
-Granger causal VAR model, VAR(G, k).
+## The Prior of $G$ and $k$
+
+The joint prior of $G$ and $k$ is over a discrete set and can be chosen in many
+ways. For instance, if there is no reason for favoring any particular graph in 
+$\mathcal{G}$ a priori, the following prior can be used  
+
+$$p(G,k) = \frac{p(k)}{|\mathcal{G}|}$$  
+
+where $p(k)$ is some discrete distribution over the integers $k = 0, 1, ..., K$.  
 
 
+## The Marginal Likelihood
+
+The marginal likelihood of the observed time series $X$ and is given by
+$$m(G,k|X) = \int L(X|\theta,G,k) \; p(\theta|G,k) \; d\theta$$
+
+where $L(X|\theta,G,k)$ is the usual likelihood function under model $(G,k)$ 
+with parameters $\theta$, and $p(\theta|G,k)$ is the prior distribution of $\theta$.  
 
 
+## The Fractional Bayes Approach
+
+For the $VAR(G,k)$ family of models, a common choice for $p(\theta|G,k)$ is the 
+inverse Wishart distribution. However, this is an improper prior and is not 
+directly usable for deriving the joint posterior of $G$ and $k$.  
+
+A solution to this problem is to use a Fractional Bayes approach:  
+first, a small part of the sample is sacrificed in updating the improper prior 
+to a proper posterior, then use this posterior as a new prior for the remaining 
+observations.  
+
+The authors derived an approximated version of the exact Fractional Marginal 
+Likelihood and this approach produced favorable results in model inference. 
 
 
+## Maximum Likelihood Estimation
 
-# 3. Bayesian Model Assessment for Graphical VARs
+- Discussion of maximum likelihood estimation for VAR(G, k) models
+- Obtaining the maximum likelihood estimate R^ of the covariance matrix R
+
 
 
 # 4. Conclusions
 
 ## Conclusions
 
-- aaa
-- aaa
+- DAG approach can be used to study the Granger causality relationships in
+VAR models
+- Since the $VAR(G,k)$ usually has a very large number of parameters, a 
+fractional Bayes approach can be used to approximate the joint posterior of the 
+process  
+- Empirically valid results
 
-![](img/dag2.png){fig-align="center" width="100"}
+![GC graph with the highest posterior probability for macroeconomic data.](img/dag2.png){fig-align="center" width="100"}
 
 
 ## Bibliografy
