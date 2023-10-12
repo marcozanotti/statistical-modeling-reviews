@@ -3,124 +3,54 @@
 # Installs & Load ---------------------------------------------------------
 
 install.packages("tidyverse")
+install.packages("patchwork")
 install.packages("mvtnorm")
+install.packages("nlme")
 install.packages("TSdist")
 install.packages("stat_mod2/longclust_1.2.3.tar.gz")
 
 library(tidyverse)
+library(patchwork)
 library(mvtnorm)
-library(TSdist)
 library(longclust)
 
 
 
-# Import & Cleaning -------------------------------------------------------
+# Custom functions --------------------------------------------------------
 
-# dataset 1: 100 clustered time series 
-data("example.database2") # get example data from TSdist package
-labels1 <- tibble(
-	name = 1:length(example.database2$classes), 
-	cluster = example.database2$classes
-)
-data1 <- t(example.database2$data) |> 
-	as_tibble() |> 
-	set_names(labels1$name) |> 
-	mutate(time = 1:n(), .before = 1)
+get_clusters <- function(cluster_score, threshold = .5) {
+	
+	n_clus <- ncol(cluster_score)
+	n_obs <- nrow(cluster_score)
+	res <- tibble::tibble(id = 1:n_obs, cluster = vector("numeric", n_obs))
+	for (j in 1:n_clus) {
+		cluster_score[, j] <- ifelse(cluster_score[, j] >= threshold, j, 0)
+	}
+	res$cluster <- rowSums(cluster_score)
+	return(res)
+	
+}
 
-# dataset 2: 50 clustered time series
-data("example.database3") # get example data from TSdist package
-labels2 <- tibble(
-	name = 1:length(example.database3$classes), 
-	cluster = example.database3$classes
-)
-data2 <- t(example.database3$data) |> 
-	as_tibble() |> 
-	set_names(labels2$name) |> 
-	mutate(time = 1:n(), .before = 1)
+log_standardize_vec <- function(x) {
+	y <- log1p(x)
+	y <- (y - mean(y)) / sd(y)
+	return(y)
+}
 
-# in matrix and rowise format for clustering modelling
-data1_clus <- example.database2$data
-data2_clus <- example.database3$data
-rm(example.database2)
-rm(example.database3)
+standardize_vec <- function(x) {
+	y <- (x - mean(x)) / sd(x)
+	return(y)
+}
 
 
 
-# Visualization -----------------------------------------------------------
+# Simulated Data ----------------------------------------------------------
 
-idx1 <- labels1 |> group_by(cluster) |> slice(1) |> pull(name)
-data1 |> 
-	pivot_longer(-time) |> 
-	mutate(name = as.integer(name)) |> 
-	left_join(labels1, by = "name") |> 
-	filter(name %in% idx1) |> # 1 per cluster
-	ggplot(aes(x = time, y = value, group = cluster, color = name)) +
-	geom_line(alpha = 0.5, show.legend = FALSE) +
-	facet_wrap(. ~ cluster) + 
-	labs(title = "Dataset 1: 1 time series by cluster", y = "") +
-	theme_bw()
+# * Simulation ------------------------------------------------------------
 
-data1 |> 
-	pivot_longer(-time) |> 
-	mutate(name = as.integer(name)) |> 
-	left_join(labels1, by = "name") |> 
-	ggplot(aes(x = time, y = value, group = cluster, color = name)) +
-	geom_line(alpha = 0.5, show.legend = FALSE) +
-	geom_smooth(color = "red", show.legend = FALSE) +
-	facet_wrap(. ~ cluster) + 
-	labs(title = "Dataset 1: 100 time series by cluster", y = "") +
-	theme_bw()
+# simulate time series with 6 observations each
+nsim <- 5
 
-
-idx2 <- labels2 |> group_by(cluster) |> slice(1) |> pull(name)
-data2 |> 
-	pivot_longer(-time) |> 
-	mutate(name = as.integer(name)) |> 
-	left_join(labels2, by = "name") |> 
-	filter(name %in% idx2) |> # 1 per cluster
-	ggplot(aes(x = time, y = value, group = cluster, color = name)) +
-	geom_line(alpha = 0.5, show.legend = FALSE) +
-	facet_wrap(. ~ cluster) + 
-	labs(title = "Dataset 2: 1 time series by cluster", y = "") +
-	theme_bw()
-
-data2 |> 
-	pivot_longer(-time) |> 
-	mutate(name = as.integer(name)) |> 
-	left_join(labels2, by = "name") |> 
-	ggplot(aes(x = time, y = value, group = cluster, color = name)) +
-	geom_line(alpha = 0.5, show.legend = FALSE) +
-	geom_smooth(color = "red", show.legend = FALSE) +
-	facet_wrap(. ~ cluster) + 
-	labs(title = "Dataset 2: 50 time series by cluster", y = "") +
-	theme_bw()
-
-
-
-# Modelling ---------------------------------------------------------------
-
-?longclustEM
-
-clus1 <- longclustEM(t(data1_clus), 2, 8, gaussian = TRUE)
-clus1$Gbest
-clus1$bicres
-clus1$zbest |> round(2)
-plot(clus1, t(data1_clus))
-
-clus2 <- longclustEM(t(data2_clus), 2, 8, gaussian = TRUE)
-clus2$Gbest
-clus2$bicres
-clus2$zbest |> round(2)
-plot(clus2, t(data2_clus))
-
-
-
-
-
-
-# Simulation --------------------------------------------------------------
-
-# mu and sigma of 4 different multivariate normal distributions
 m1 <- c(23, 34, 39, 45, 51, 56)
 S1 <- matrix(c(1.00, -0.90, 0.18, -0.13, 0.10, -0.05, -0.90, 
 							 1.31, -0.26, 0.18, -0.15, 0.07, 0.18, -0.26, 4.05, -2.84, 
@@ -145,39 +75,185 @@ S3 <- matrix(c(1.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00,
 m4 <- c(12, 9, 8, 5, 4 ,2)
 S4 <- diag(c(1, 1, 1, 1, 1, 1))
 
+set.seed(123456)
 data <- rbind(
-	rmvnorm(25, m1, S1), rmvnorm(25, m2, S2),	
-	rmvnorm(25, m3, S3), rmvnorm(25, m4, S4)
+	rmvnorm(nsim, m1, S1), rmvnorm(nsim, m2, S2),	
+	rmvnorm(nsim, m3, S3), rmvnorm(nsim, m4, S4)
 )
 
 
+# * Visualization ---------------------------------------------------------
 
-# Visualization -----------------------------------------------------------
-
-data |> 
+data_tbl <- data |> 
+	t() |> 
 	as_tibble() |> 
-	set_names(1:6) |> 
+	set_names(1:ncol(t(data))) |> 
 	mutate(time = 1:n(), .before = 1) |> 
 	pivot_longer(-time) |> 
 	mutate(name = as.integer(name)) |> 
-	arrange(name, time) |> 
+	arrange(name, time)
+
+data_tbl |> 
 	ggplot(aes(x = time, y = value, group = name, color = name)) +
-	geom_line(alpha = 0.5, show.legend = FALSE) +
+	geom_line(alpha = 0.8, show.legend = FALSE) +
 	facet_wrap(. ~ name) + 
 	labs(title = "Simulated time series", y = "") +
 	theme_bw()
 
 
+# * Modelling -------------------------------------------------------------
 
-# Modelling ---------------------------------------------------------------
-
-clus <- longclustEM(data, 3, 5, gaussian = TRUE)
+clus <- longclustEM(data, 2, 6, gaussian = TRUE, criteria = "BIC")
 
 clus$Gbest
-clus$bicres
-clus$zbest |> round(2)
+clus$bicres # EEI
 
 summary(clus)
-plot(clus, data)
-print(clus)
 
+clus_res <- get_clusters(clus$zbest)
+
+data_clus <- data_tbl |> 
+	left_join(clus_res, by = c("name" = "id")) |> 
+	mutate(cluster = as.factor(cluster))
+
+data_clus |> 
+	ggplot(aes(x = time, y = value, group = name, color = cluster)) +
+	geom_line(alpha = 0.5, show.legend = FALSE) +
+	facet_wrap(. ~ cluster) + 
+	labs(title = "Simulated time series", y = "") +
+	theme_bw()
+
+
+
+# Replication Study - Rats Data -------------------------------------------
+
+# * Data ------------------------------------------------------------------
+
+# time series of rats' body weight for 4 different diets  
+data_rats <- nlme::BodyWeight |> 
+	as_tibble() |> 
+	set_names(c("value", "time", "name", "diet")) |> 
+	mutate(name = as.integer(name)) |> 
+	select(name, time, value, diet) |> 
+	arrange(name, time)
+
+
+# * Visualization ---------------------------------------------------------
+
+data_rats |> 
+	ggplot(aes(x = time, y = value, group = name, col = diet)) + 
+	geom_line() + 
+	labs(title = "Rats body weight over time by diet", y = "") +
+	theme_bw()
+
+
+# * Modelling -------------------------------------------------------------
+
+# data in matrix form by row
+data_rats_mat <- data_rats |> 
+	select(-diet) |> 
+	pivot_wider(names_from = name, values_from = value) |> 
+	select(-time) |> 
+	as.matrix() |> 
+	t()
+
+clus <- longclustEM(data_rats_mat, 2, 6, gaussian = TRUE)
+
+clus$Gbest
+clus$bicres # EEA
+
+clus_res <- get_clusters(clus$zbest)
+
+data_rats_clus <- data_rats |> 
+	left_join(clus_res, by = c("name" = "id"))
+
+data_rats_clus |> 
+	mutate(diet = as.numeric(diet)) |> 
+	pivot_longer(cols = c(diet, cluster), names_to = "type", values_to = "group_value") |> 
+	mutate(group_value = as.factor(group_value)) |> 
+	ggplot(aes(x = time, y = value, group = name, col = group_value)) + 
+	geom_line() + 
+	facet_wrap(~ type) +
+	labs(y = "") +
+	theme_bw()
+
+
+
+# Real Application - TSdist Data ------------------------------------------
+
+# * Data ------------------------------------------------------------------
+
+# dataset 1: 100 clustered time series from TSdist package
+data("example.database2", package = "TSdist")
+
+labels1 <- tibble(
+	name = 1:length(example.database2$classes), 
+	group = example.database2$classes
+)
+
+data1 <- t(example.database2$data) |> 
+	as_tibble() |> 
+	set_names(labels1$name) |> 
+	mutate(across(everything(), log_standardize_vec)) |> # log + standardization
+	mutate(time = 1:n(), .before = 1) |> 
+	slice(1:40) # first 40 observations otherwise the algorithm does not work
+
+data1_tbl <- data1 |> 
+	pivot_longer(-time) |> 
+	mutate(name = as.integer(name)) |> 
+	left_join(labels1, by = "name") |> 
+	arrange(name, time)
+
+rm(example.database2)
+
+
+# * Visualization ---------------------------------------------------------
+
+idx1 <- labels1 |> group_by(group) |> slice(1) |> pull(name)
+data1_tbl |> 
+	filter(name %in% idx1) |> # 1 per cluster
+	ggplot(aes(x = time, y = value, color = name)) +
+	geom_line(alpha = 0.5, show.legend = FALSE) +
+	facet_wrap(. ~ group) + 
+	labs(title = "Dataset 1: one sampled time series by cluster", y = "") +
+	theme_bw()
+
+data1_tbl |> 
+	group_by(name) |> 
+	ggplot(aes(x = time, y = value, group = name, col = name)) +
+	geom_line(alpha = 0.5, show.legend = FALSE) +
+	facet_wrap(. ~ group) + 
+	labs(title = "Dataset 1: 100 time series by cluster", y = "") +
+	theme_bw()
+
+
+# * Modelling -------------------------------------------------------------
+
+# in matrix and rowise format for clustering modelling
+data1_mat <- data1 |> select(-time) |> as.matrix() |> t()
+
+clus1 <- longclustEM(data1_mat, 2, 8, gaussian = TRUE)
+
+clus1$Gbest
+clus1$bicres # EVI
+
+clus1_res <- get_clusters(clus1$zbest)
+
+data1_clus <- data1_tbl |> 
+	left_join(clus1_res, by = c("name" = "id"))
+
+g1 <- data1_clus |> 
+	mutate(group = as.factor(group)) |> 
+	ggplot(aes(x = time, y = value, group = name, col = group)) + 
+	geom_line() + 
+	facet_wrap(. ~ group) +
+	labs(title = "Real Clusters", y = "") +
+	theme_bw()
+g2 <- data1_clus |> 
+	mutate(cluster = as.factor(cluster)) |> 
+	ggplot(aes(x = time, y = value, group = name, col = cluster)) + 
+	geom_line() + 
+	facet_wrap(. ~ cluster) +
+	labs(title = "Estimated Clusters", y = "") +
+	theme_bw()
+g1 / g2
