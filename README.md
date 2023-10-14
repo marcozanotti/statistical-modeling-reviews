@@ -14,7 +14,7 @@ Modelling.
 [Presentation](https://marcozanotti.github.io/statistical-modeling-reviews/stat_mod2/stat_mod2.pdf)
 
 [R
-Code](https://marcozanotti.github.io/statistical-modeling-reviews/stat_mod2/stat_mod2.R)
+Code](https://marcozanotti.github.io/statistical-modeling-reviews/stat_mod2/longclust.R)
 
 ## Statistical Modelling 3 - Verzillo
 
