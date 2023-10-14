@@ -106,10 +106,10 @@ data_tbl <- data |>
 	arrange(name, time)
 
 data_tbl |> 
-	ggplot(aes(x = time, y = value, group = name)) +
+	ggplot(aes(x = time, y = value, group = name, col = name)) +
 	geom_line(alpha = 0.8, show.legend = FALSE) +
-	facet_wrap(. ~ name) + 
-	labs(title = "Simulated time series", y = "") +
+	# facet_wrap(. ~ name) + 
+	labs(title = "", y = "") +
 	theme_bw()
 
 
@@ -125,14 +125,19 @@ summary(mb_clus)
 get_clusters(mb_clus$zbest)
 
 # K-medoids with DTW
-km_dtw <- tsclust(data, type = "partitional", k = 2L:6L, distance = "dtw", centroid = "pam")
+km_dtw <- tsclust(data_mat, type = "partitional", k = 2L:6L, distance = "dtw", centroid = "pam")
 best_km_dtw <- sapply(km_dtw, cvi, type = method) |> which.max() + 1
-km_dtw <- tsclust(data, type = "partitional", k = best_km_dtw, distance = "dtw", centroid = "pam")
+km_dtw <- tsclust(data_mat, type = "partitional", k = best_km_dtw, distance = "dtw", centroid = "pam")
 
 # Hierarchical with DTW
-hie_dtw <- tsclust(data, type = "hierarchical", k = 2L:6L, distance = "dtw")
+hie_dtw <- tsclust(data_mat, type = "hierarchical", k = 2L:6L, distance = "dtw")
 best_hie_dtw <- sapply(hie_dtw, cvi, type = method) |> which.max() + 1
-hie_dtw <- tsclust(data, type = "hierarchical", k = best_hie_dtw, distance = "dtw")
+hie_dtw <- tsclust(data_mat, type = "hierarchical", k = best_hie_dtw, distance = "dtw")
+
+# Imposing the number of clusters
+mb_clus <- longclustEM(data_mat, 4, 4, gaussian = TRUE, criteria = "BIC")
+km_dtw <- tsclust(data_mat, type = "partitional", k = 4, distance = "dtw", centroid = "pam")
+hie_dtw <- tsclust(data_mat, type = "hierarchical", k = 4, distance = "dtw")
 
 clusters <- get_clusters(mb_clus$zbest) |> 
 	mutate(km_clus = km_dtw@cluster, hie_clus = hie_dtw@cluster) |>
@@ -216,6 +221,11 @@ km_dtw_rats <- tsclust(data_rats_mat, type = "partitional", k = best_km_dtw_rats
 hie_dtw_rats <- tsclust(data_rats_mat, type = "hierarchical", k = 2L:6L, distance = "dtw")
 best_hie_dtw_rats <- sapply(hie_dtw_rats, cvi, type = method) |> which.max() + 1
 hie_dtw_rats <- tsclust(data_rats_mat, type = "hierarchical", k = best_hie_dtw_rats, distance = "dtw")
+
+# Imposing the number of clusters
+mb_clus_rats <- longclustEM(data_rats_mat, 3, 3, gaussian = TRUE, criteria = "BIC")
+km_dtw_rats <- tsclust(data_rats_mat, type = "partitional", k = 3, distance = "dtw", centroid = "pam")
+hie_dtw_rats <- tsclust(data_rats_mat, type = "hierarchical", k = 3, distance = "dtw")
 
 clusters_rats <- get_clusters(mb_clus_rats$zbest) |> 
 	mutate(km_clus = km_dtw_rats@cluster, hie_clus = hie_dtw_rats@cluster) |> 
@@ -332,6 +342,11 @@ km_dtw1 <- tsclust(data1_mat, type = "partitional", k = best_km_dtw1, distance =
 hie_dtw1 <- tsclust(data1_mat, type = "hierarchical", k = 2L:8L, distance = "dtw")
 best_hie_dtw1 <- sapply(hie_dtw1, cvi, type = method) |> which.max() + 1
 hie_dtw1 <- tsclust(data1_mat, type = "hierarchical", k = best_hie_dtw1, distance = "dtw")
+
+# Imposing the number of clusters
+mb_clus1 <- longclustEM(data1_mat, 5, 5, gaussian = TRUE, criteria = "BIC")
+km_dtw1 <- tsclust(data1_mat, type = "partitional", k = 5, distance = "dtw", centroid = "pam")
+hie_dtw1 <- tsclust(data1_mat, type = "hierarchical", k = 5, distance = "dtw")
 
 clusters1 <- get_clusters(mb_clus1$zbest) |> 
 	mutate(km_clus = km_dtw1@cluster, hie_clus = hie_dtw1@cluster) |> 
