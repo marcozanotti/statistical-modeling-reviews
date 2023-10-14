@@ -7,11 +7,13 @@ install.packages("patchwork")
 install.packages("mvtnorm")
 install.packages("nlme")
 install.packages("TSdist")
+install.packages("dtwclust")
 install.packages("stat_mod2/longclust_1.2.3.tar.gz")
 
 library(tidyverse)
 library(patchwork)
 library(mvtnorm)
+library(dtwclust)
 library(longclust)
 
 
@@ -22,11 +24,11 @@ get_clusters <- function(cluster_score, threshold = .5) {
 	
 	n_clus <- ncol(cluster_score)
 	n_obs <- nrow(cluster_score)
-	res <- tibble::tibble(id = 1:n_obs, cluster = vector("numeric", n_obs))
+	res <- tibble::tibble(id = 1:n_obs, mb_clus = vector("numeric", n_obs))
 	for (j in 1:n_clus) {
 		cluster_score[, j] <- ifelse(cluster_score[, j] >= threshold, j, 0)
 	}
-	res$cluster <- rowSums(cluster_score)
+	res$mb_clus <- rowSums(cluster_score)
 	return(res)
 	
 }
@@ -41,6 +43,16 @@ standardize_vec <- function(x) {
 	y <- (x - mean(x)) / sd(x)
 	return(y)
 }
+
+
+
+# Parameters --------------------------------------------------------------
+
+# what method to use for choosing the optimal number of clusters in k-means and 
+# hierarchical clustering
+# possible values from cvi - type 
+?cvi
+method <- "D"
 
 
 
@@ -94,7 +106,7 @@ data_tbl <- data |>
 	arrange(name, time)
 
 data_tbl |> 
-	ggplot(aes(x = time, y = value, group = name, color = name)) +
+	ggplot(aes(x = time, y = value, group = name)) +
 	geom_line(alpha = 0.8, show.legend = FALSE) +
 	facet_wrap(. ~ name) + 
 	labs(title = "Simulated time series", y = "") +
@@ -103,26 +115,55 @@ data_tbl |>
 
 # * Modelling -------------------------------------------------------------
 
-clus <- longclustEM(data, 2, 6, gaussian = TRUE, criteria = "BIC")
+data_mat <- apply(t(data), 2, standardize_vec) |> t()
 
-clus$Gbest
-clus$bicres # EEI
+# Model-based
+mb_clus <- longclustEM(data_mat, 2, 6, gaussian = TRUE, criteria = "BIC")
+mb_clus$Gbest
+mb_clus$bicres # EVI (-6.540292)
+summary(mb_clus)
+get_clusters(mb_clus$zbest)
 
-summary(clus)
+# K-medoids with DTW
+km_dtw <- tsclust(data, type = "partitional", k = 2L:6L, distance = "dtw", centroid = "pam")
+best_km_dtw <- sapply(km_dtw, cvi, type = method) |> which.max() + 1
+km_dtw <- tsclust(data, type = "partitional", k = best_km_dtw, distance = "dtw", centroid = "pam")
 
-clus_res <- get_clusters(clus$zbest)
+# Hierarchical with DTW
+hie_dtw <- tsclust(data, type = "hierarchical", k = 2L:6L, distance = "dtw")
+best_hie_dtw <- sapply(hie_dtw, cvi, type = method) |> which.max() + 1
+hie_dtw <- tsclust(data, type = "hierarchical", k = best_hie_dtw, distance = "dtw")
 
+clusters <- get_clusters(mb_clus$zbest) |> 
+	mutate(km_clus = km_dtw@cluster, hie_clus = hie_dtw@cluster) |>
+	mutate(
+		mb_clus = as.factor(mb_clus),
+		km_clus = as.factor(km_clus),
+		hie_clus = as.factor(hie_clus)
+	)
+	
 data_clus <- data_tbl |> 
-	left_join(clus_res, by = c("name" = "id")) |> 
-	mutate(cluster = as.factor(cluster))
+	left_join(clusters, by = c("name" = "id"))
 
-data_clus |> 
-	ggplot(aes(x = time, y = value, group = name, color = cluster)) +
+g_mb <- data_clus |> 
+	ggplot(aes(x = time, y = value, group = name, col = mb_clus)) +
 	geom_line(alpha = 0.5, show.legend = FALSE) +
-	facet_wrap(. ~ cluster) + 
-	labs(title = "Simulated time series", y = "") +
+	facet_wrap(. ~ mb_clus) + 
+	labs(title = "Model-based (EVI)", y = "") +
 	theme_bw()
-
+g_km <- data_clus |> 
+	ggplot(aes(x = time, y = value, group = name, col = km_clus)) +
+	geom_line(alpha = 0.5, show.legend = FALSE) +
+	facet_wrap(. ~ km_clus) + 
+	labs(title = "K-medoids with DTW", y = "") +
+	theme_bw()
+g_hie <- data_clus |> 
+	ggplot(aes(x = time, y = value, group = name, col = hie_clus)) +
+	geom_line(alpha = 0.5, show.legend = FALSE) +
+	facet_wrap(. ~ hie_clus) + 
+	labs(title = "Hierarchical with DTW", y = "") +
+	theme_bw()
+g_mb / g_km / g_hie
 
 
 # Replication Study - Rats Data -------------------------------------------
@@ -143,6 +184,7 @@ data_rats <- nlme::BodyWeight |>
 data_rats |> 
 	ggplot(aes(x = time, y = value, group = name, col = diet)) + 
 	geom_line() + 
+	facet_wrap(. ~ diet) +
 	labs(title = "Rats body weight over time by diet", y = "") +
 	theme_bw()
 
@@ -154,28 +196,65 @@ data_rats_mat <- data_rats |>
 	select(-diet) |> 
 	pivot_wider(names_from = name, values_from = value) |> 
 	select(-time) |> 
+	mutate(across(everything(), standardize_vec)) |> 
 	as.matrix() |> 
 	t()
 
-clus <- longclustEM(data_rats_mat, 2, 6, gaussian = TRUE)
+# Model-based
+mb_clus_rats <- longclustEM(data_rats_mat, 2, 6, gaussian = TRUE, criteria = "BIC")
+mb_clus_rats$Gbest
+mb_clus_rats$bicres # EVI (-172.6680)
+summary(mb_clus_rats)
+get_clusters(mb_clus_rats$zbest)
 
-clus$Gbest
-clus$bicres # EEA
+# K-medoids with DTW
+km_dtw_rats <- tsclust(data_rats_mat, type = "partitional", k = 2L:6L, distance = "dtw", centroid = "pam")
+best_km_dtw_rats <- sapply(km_dtw_rats, cvi, type = method) |> which.max() + 1
+km_dtw_rats <- tsclust(data_rats_mat, type = "partitional", k = best_km_dtw_rats, distance = "dtw", centroid = "pam")
 
-clus_res <- get_clusters(clus$zbest)
+# Hierarchical with DTW
+hie_dtw_rats <- tsclust(data_rats_mat, type = "hierarchical", k = 2L:6L, distance = "dtw")
+best_hie_dtw_rats <- sapply(hie_dtw_rats, cvi, type = method) |> which.max() + 1
+hie_dtw_rats <- tsclust(data_rats_mat, type = "hierarchical", k = best_hie_dtw_rats, distance = "dtw")
 
-data_rats_clus <- data_rats |> 
-	left_join(clus_res, by = c("name" = "id"))
+clusters_rats <- get_clusters(mb_clus_rats$zbest) |> 
+	mutate(km_clus = km_dtw_rats@cluster, hie_clus = hie_dtw_rats@cluster) |> 
+	mutate(
+		mb_clus = as.factor(mb_clus),
+		km_clus = as.factor(km_clus),
+		hie_clus = as.factor(hie_clus)
+	)
 
-data_rats_clus |> 
-	mutate(diet = as.numeric(diet)) |> 
-	pivot_longer(cols = c(diet, cluster), names_to = "type", values_to = "group_value") |> 
-	mutate(group_value = as.factor(group_value)) |> 
-	ggplot(aes(x = time, y = value, group = name, col = group_value)) + 
-	geom_line() + 
-	facet_wrap(~ type) +
-	labs(y = "") +
+data_clus_rats <- data_rats |> 
+	left_join(clusters_rats, by = c("name" = "id"))
+
+g_rats <- data_clus_rats |> 
+	ggplot(aes(x = time, y = value, group = name, col = diet)) +
+	geom_line(alpha = 0.5, show.legend = FALSE) +
+	facet_wrap(. ~ diet) + 
+	labs(title = "Real Groups - Diets", y = "") +
 	theme_bw()
+g_mb_rats <- data_clus_rats |> 
+	ggplot(aes(x = time, y = value, group = name, col = mb_clus)) +
+	geom_line(alpha = 0.5, show.legend = FALSE) +
+	facet_wrap(. ~ mb_clus) + 
+	labs(title = "Model-based (EVI)", y = "") +
+	theme_bw()
+g_km_rats <- data_clus_rats |> 
+	ggplot(aes(x = time, y = value, group = name, col = km_clus)) +
+	geom_line(alpha = 0.5, show.legend = FALSE) +
+	facet_wrap(. ~ km_clus) + 
+	labs(title = "K-medoids with DTW", y = "") +
+	theme_bw()
+g_hie_rats <- data_clus_rats |> 
+	ggplot(aes(x = time, y = value, group = name, col = hie_clus)) +
+	geom_line(alpha = 0.5, show.legend = FALSE) +
+	facet_wrap(. ~ hie_clus) + 
+	labs(title = "Hierarchical with DTW", y = "") +
+	theme_bw()
+g_rats / g_mb_rats 
+g_rats / g_km_rats
+g_rats / g_hie_rats
 
 
 
@@ -191,17 +270,16 @@ labels1 <- tibble(
 	group = example.database2$classes
 )
 
-data1 <- t(example.database2$data) |> 
+data1_tbl <- t(example.database2$data) |> 
 	as_tibble() |> 
 	set_names(labels1$name) |> 
-	mutate(across(everything(), log_standardize_vec)) |> # log + standardization
 	mutate(time = 1:n(), .before = 1) |> 
-	slice(1:40) # first 40 observations otherwise the algorithm does not work
-
-data1_tbl <- data1 |> 
+	slice(1:40) |> # first 40 observations otherwise the algorithm does not work
 	pivot_longer(-time) |> 
 	mutate(name = as.integer(name)) |> 
 	left_join(labels1, by = "name") |> 
+	filter(group != 6) |> 
+	mutate(group = as.factor(group)) |> 
 	arrange(name, time)
 
 rm(example.database2)
@@ -212,48 +290,85 @@ rm(example.database2)
 idx1 <- labels1 |> group_by(group) |> slice(1) |> pull(name)
 data1_tbl |> 
 	filter(name %in% idx1) |> # 1 per cluster
-	ggplot(aes(x = time, y = value, color = name)) +
+	ggplot(aes(x = time, y = value, color = group)) +
 	geom_line(alpha = 0.5, show.legend = FALSE) +
 	facet_wrap(. ~ group) + 
-	labs(title = "Dataset 1: one sampled time series by cluster", y = "") +
+	labs(title = "One sampled time series by cluster", y = "") +
 	theme_bw()
 
 data1_tbl |> 
 	group_by(name) |> 
-	ggplot(aes(x = time, y = value, group = name, col = name)) +
+	ggplot(aes(x = time, y = value, group = name, col = group)) +
 	geom_line(alpha = 0.5, show.legend = FALSE) +
 	facet_wrap(. ~ group) + 
-	labs(title = "Dataset 1: 100 time series by cluster", y = "") +
+	labs(title = "85 time series by clusters", y = "") +
 	theme_bw()
 
 
 # * Modelling -------------------------------------------------------------
 
 # in matrix and rowise format for clustering modelling
-data1_mat <- data1 |> select(-time) |> as.matrix() |> t()
+data1_mat <- data1_tbl |> 
+	select(-group) |> 
+	pivot_wider(names_from = name, values_from = value) |> 
+	select(-time) |> 
+	mutate(across(everything(), standardize_vec)) |> # standardization 
+	as.matrix() |> 
+	t()
 
-clus1 <- longclustEM(data1_mat, 2, 8, gaussian = TRUE)
+# Model-based
+mb_clus1 <- longclustEM(data1_mat, 2, 8, gaussian = TRUE, criteria = "BIC")
+mb_clus1$Gbest
+mb_clus1$bicres # EVI (-7242.576)
+summary(mb_clus1)
+get_clusters(mb_clus1$zbest)
 
-clus1$Gbest
-clus1$bicres # EVI
+# K-medoids with DTW
+km_dtw1 <- tsclust(data1_mat, type = "partitional", k = 2L:8L, distance = "dtw", centroid = "pam")
+best_km_dtw1 <- sapply(km_dtw1, cvi, type = method) |> which.max() + 1
+km_dtw1 <- tsclust(data1_mat, type = "partitional", k = best_km_dtw1, distance = "dtw", centroid = "pam")
 
-clus1_res <- get_clusters(clus1$zbest)
+# Hierarchical with DTW
+hie_dtw1 <- tsclust(data1_mat, type = "hierarchical", k = 2L:8L, distance = "dtw")
+best_hie_dtw1 <- sapply(hie_dtw1, cvi, type = method) |> which.max() + 1
+hie_dtw1 <- tsclust(data1_mat, type = "hierarchical", k = best_hie_dtw1, distance = "dtw")
 
-data1_clus <- data1_tbl |> 
-	left_join(clus1_res, by = c("name" = "id"))
+clusters1 <- get_clusters(mb_clus1$zbest) |> 
+	mutate(km_clus = km_dtw1@cluster, hie_clus = hie_dtw1@cluster) |> 
+	mutate(
+		mb_clus = as.factor(mb_clus),
+		km_clus = as.factor(km_clus),
+		hie_clus = as.factor(hie_clus)
+	)
 
-g1 <- data1_clus |> 
-	mutate(group = as.factor(group)) |> 
-	ggplot(aes(x = time, y = value, group = name, col = group)) + 
-	geom_line() + 
-	facet_wrap(. ~ group) +
-	labs(title = "Real Clusters", y = "") +
+data_clus1 <- data1_tbl |> 
+	left_join(clusters1, by = c("name" = "id"))
+
+g1 <- data_clus1 |> 
+	ggplot(aes(x = time, y = value, group = name, col = group)) +
+	geom_line(alpha = 0.5, show.legend = FALSE) +
+	facet_wrap(. ~ group) + 
+	labs(title = "Real Groups", y = "") +
 	theme_bw()
-g2 <- data1_clus |> 
-	mutate(cluster = as.factor(cluster)) |> 
-	ggplot(aes(x = time, y = value, group = name, col = cluster)) + 
-	geom_line() + 
-	facet_wrap(. ~ cluster) +
-	labs(title = "Estimated Clusters", y = "") +
+g_mb1 <- data_clus1 |> 
+	ggplot(aes(x = time, y = value, group = name, col = mb_clus)) +
+	geom_line(alpha = 0.5, show.legend = FALSE) +
+	facet_wrap(. ~ mb_clus) + 
+	labs(title = "Model-based (EVI)", y = "") +
 	theme_bw()
-g1 / g2
+g_km1 <- data_clus1 |> 
+	ggplot(aes(x = time, y = value, group = name, col = km_clus)) +
+	geom_line(alpha = 0.5, show.legend = FALSE) +
+	facet_wrap(. ~ km_clus) + 
+	labs(title = "K-medoids with DTW", y = "") +
+	theme_bw()
+g_hie1 <- data_clus1 |> 
+	ggplot(aes(x = time, y = value, group = name, col = hie_clus)) +
+	geom_line(alpha = 0.5, show.legend = FALSE) +
+	facet_wrap(. ~ hie_clus) + 
+	labs(title = "Hierarchical with DTW", y = "") +
+	theme_bw()
+g1 / g_mb1 
+g1 / g_km1
+g1 / g_hie1
+
