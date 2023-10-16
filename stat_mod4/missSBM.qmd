@@ -1,12 +1,27 @@
 ---
 title: "missSBM"
 author: "Marco Zanotti"
-date: "27-10-2023"
-output: html
-toc: true
+date: "2023-10-27"
+format: 
+  html:
+    embed-resources: true
+    smooth-scroll: true
+    theme: darkly
+    toc: true
+    toc-location: left
+    toc-title: "Contents"
+    toc-depth: 3
 ---
 
-```{r setup, include=FALSE}
+```{r, echo=FALSE}
+htmltools::img(
+	src = knitr::image_uri("img/logo-giallo.png"), 
+  alt = 'logo', 
+	style = 'position:absolute; top:0; right:0; padding:10px;'
+)
+```
+
+```{r, include=FALSE}
 knitr::opts_chunk$set(
   echo = TRUE,
   message = FALSE, 
@@ -15,18 +30,13 @@ knitr::opts_chunk$set(
   fig.height = 4
 )
 
-library(igraph)
-library(ggplot2)
-library(corrplot)
-library(magrittr)
-library(missSBM)
-library(future)
-
 n_cores <- parallel::detectCores()
 future::plan("multisession", workers = n_cores)
-
-set.seed(777) # set seed for reproducibility
 ```
+
+
+
+## Package Description
 
 When a network is partially observed (here, NAs in the adjacency matrix rather 
 than 1 or 0 due to missing information between node pairs), it is possible to 
@@ -36,7 +46,22 @@ stochastic block model from network data observed under various missing data
 conditions, as described in ‘Tabouy, Barbillon and Chiquet’ (2019).  
 
 
-## The War Network
+
+## Setup
+
+```{r setup}
+library(igraph)
+library(ggplot2)
+library(corrplot)
+library(missSBM)
+library(future)
+
+set.seed(1992) # set seed for reproducibility
+```
+
+
+
+## Data
 
 The `war` data set comes with the `missSBM` package.
 
@@ -44,16 +69,17 @@ The `war` data set comes with the `missSBM` package.
 data("war")
 ```
 
-This data set contains a list of two networks (`belligerent` and `alliance`) 
-where the nodes are countries; an edge in the network `belligerent` means that 
-the two countries have been at war at least once between years 1816 to 2007; 
-an edge in network `alliance` means that the two countries have had a formal 
-alliance between years 1816 and 2012. The network `belligerent` have less nodes 
+
+### Belligerant Network
+
+This data set contains a list of two networks, `belligerent` and `alliance`.
+Here only the first one is used, where the nodes are countries and an edge 
+in the network `belligerent` means that the two countries have been at war at 
+least once between years 1816 to 2007. The network `belligerent` have less nodes 
 since countries which have not been at war at all are not considered.  
-On the top of the two networks, two covariates were considered. One covariate 
-is concerned with military power of the states and the other is concerned with 
-trade exchanges between country. In the following, the focus is on the network 
-`war$belligerent`, which is provided as an igraph object.
+There are also possible covariates on top of the network. Here the one concerned 
+with military power of the states is considered.  
+The `igraph` library is used to draw the network.
 
 ```{r war network plot, fig.width=7,  fig.height=7}
 par(mar = c(0, 0, 0, 0))
@@ -69,115 +95,145 @@ plot(
 )
 ```
 
-To proceed with the analysis, extract the adjacency matrix of the network, a 
-covariate on the vertices describing the military power of each country, and a 
-covariate on the dyads describing the intensity of trade between two countries.
+The adjacency matrix of the network can be extracted using the function `as_adj`.
 
 ```{r belligerent network}
 belligerent_adjacency <- as_adj(war$belligerent, sparse = FALSE)
-belligerent_power <- war$belligerent$power
-belligerent_trade <- war$belligerent$trade
+belligerent_power <- war$belligerent$power # covariate info
 ```
 
 
-## Generating Missing Data
+### Generating Missing Observations
 
-Even though the dataset was complete, we can assume that some data may be 
-missing for the sake of illustration.  
-More specifically, the data collection may be missing for some countries in 
-the sense that data were collected comprehensively for a subset of countries 
-and for the other countries we only observe their edges with the first subset 
-and not within them. Thus, the sampling is node-centered and collects edges 
-information accordingly (there will be a block of missing data on the diagonal 
-of the adjacency matrix). To this end we rely on the function `observeNetwork` 
-in **missSBM**.
+Following the authors procedure, even though the dataset is complete, it is 
+possible to assume that some data may be missing. More specifically, the data 
+collection may be missing for some countries in the sense that data were 
+collected comprehensively for a subset of countries only. This implies that the 
+sampling is **node-centered** and collects edges information accordingly (there 
+will be a block of missing data on the diagonal of the adjacency matrix).  
 
-```{r sampling node}
+The function `observeNetwork` in **missSBM** allows to draw observations in an 
+adjacency matrix according to a given network sampling design. The different 
+sampling designs are split into two families: dyad-centered and node-centered. 
+The sampling design has to be provided through the `sampling` argument, 
+specifying also the parameter p, that is the probability that the node i is 
+observed. The output is an adjacency matrix with the same dimension as the 
+input, yet with additional NAs.
+
+```{r sampling node, fig.align='center'}
 partlyObservedNet_war <- missSBM::observeNetwork(
-	belligerent_adjacency, sampling = "node", parameters = .8
+	adjacencyMatrix = belligerent_adjacency, 
+	sampling = "node", 
+	parameters = .8
 )
-corrplot(partlyObservedNet_war, 
+corrplot(
+	partlyObservedNet_war, 
   is.corr = FALSE,
   tl.pos = "n",
   method = "color", 
   cl.pos = "n",
   na.label.col = "grey",
   mar = c(0,0,1,0)
-  )
-```
-
-
-## Estimation with Missing Data
-
-We can now adjust a Stochastic Block Model with the function `estimateMissSBM` 
-under this type of sampling: by default, we use a forward/backward (split and 
-merge) strategy on the clustering to avoid local minimal and get a robust 
-Integrated Classification Likelihood Criterion, commonly used to perform model 
-selection. This will make the choice of the number of group/block more robust. 
-The exploration type (forward, backward, both or none, and number of iteration 
-can be tuned via the `control` argument).
-
-```{r inference node, results='hide'}
-vBlocks <- 1:5
-collection_sbm <- estimateMissSBM(partlyObservedNet_war, vBlocks, sampling = "node")
-```
-
-
-## Estimation on Fully Observed Network
-
-We would like to compare our results with the clustering obtained on the fully 
-observed network. To this end, we adjust a collection of SBM on the original 
-adjacency matrix.
-
-```{r inference full, results='hide'}
-collection_sbm_full <- estimateMissSBM(
-	belligerent_adjacency, vBlocks, sampling = "node", control = list(iterates = 2)
 )
 ```
 
-As expected, the ICL on the fully observed network is better. But more 
-interestingly, the number of groups selected may differ in the the presence of 
-missing data.
 
-```{r plot comparison full}
+
+## Estimation
+
+Now, the main purpose is to estimate a Stochastic Block Models (SBM) on the 
+belligerent network. This step is performed through the function 
+`estimateMissSBM` from the **missSBM** library. This functions provides a 
+variational EM inference of Stochastic Block Models indexed by block number 
+from a fully observed network, but, most importantly, from a partially observed 
+network. By default, the function uses a forward/backward (split and merge) 
+strategy on the clustering to avoid local minimal and get a robust Integrated 
+Classification Likelihood Criterion (ICL), commonly used to perform model 
+selection. This will make the choice of the number of group/block more robust.  
+
+
+### Estimation on Fully Observed Network
+
+To perform the estimation one just need to specify the adjacency matrix, the 
+number of blocks and the sampling scheme. The exploration type (forward, 
+backward, both or none, and number of iteration can be tuned via the `control` 
+argument).  
+
+```{r inference full, results='hide'}
+vBlocks <- 1:5
+collection_sbm_full <- estimateMissSBM(
+	adjacencyMatrix = belligerent_adjacency, 
+	vBlocks = vBlocks, 
+	sampling = "node"
+)
+```
+
+```{r}
+collection_sbm_full
+```
+
+Via the argument `vBlocks` it is possible to specify the vector of number of 
+blocks considered in the collection.
+
+
+### Estimation with Missing Data
+
+The same is done on the partially observed network.  
+
+```{r inference node, results='hide'}
+vBlocks <- 1:5
+collection_sbm <- estimateMissSBM(
+	adjacencyMatrix = partlyObservedNet_war, 
+	vBlocks = vBlocks, 
+	sampling = "node"
+)
+```
+
+```{r}
+collection_sbm
+```
+
+
+
+### Comparison
+
+It would be interesting to compare the results of the estimation from the fully
+observed network to that with missing observations.   
+
+```{r plot comparison full, fig.align='center'}
 rbind(
   data.frame(ICL = collection_sbm_full$ICL, nbBlocks = vBlocks, type = "full"),
   data.frame(ICL = collection_sbm$ICL, nbBlocks = vBlocks, type = "missing")
-) %>% 
+) |>  
   ggplot(aes(x = nbBlocks, y = ICL, group = type, color = type)) + 
   labs(title = "Model selection", x = "#blocks", y = "Integrated Classification Likelihood") +
   geom_line() + 
 	theme_bw()
 ```
 
-Indeed, two classes found on the fully observed network fuse in the SBM fitted 
-on the partially observed network.
-
-```{r clustering comparison}
-table(
-  collection_sbm$bestModel$fittedSBM$memberships,
-  collection_sbm_full$bestModel$fittedSBM$memberships
-)
-```
-
 The model finally fitted on the network data can be represented thanks to a 
 plot method applying on objects with class `SBM`.
 
-```{r plot, fig.width=7, fig.height=7}
-par(mfrow = c(1,2))
-plot(collection_sbm$bestModel, type = "expected")
+```{r plot, fig.width=7, fig.height=7, fig.align='center'}
 plot(collection_sbm_full$bestModel, type = "expected")
+plot(collection_sbm$bestModel, type = "expected")
 ```
 
 
-## Estimation with Covariates 
+### Adding Covariates in the SBM
 
-First consider a covariate reflecting the military power of the country, 
-hence associated to the nodes. We typically expect a part of the network to be 
-explained by this covariate. We run the inference on the fully observed network. 
+Consider a covariate reflecting the military power of the country, hence 
+associated to the nodes. Typically, a part of the network is expected to be 
+explained by a covariate. Including a covariate is straightforward since 
+one just need to specify a list as the `covariates` argument.  
+
+The covariate provided as a vector is transferred on edges through an $\ell_1$ 
+similarity: for edge $(i,j)$ the associated covariate is defined by $|x_i-x_j|$ 
+where $x_i$ denotes the covariate for node $i$. Another similarity measure 
+could be provided via the option `similarity`.  
 
 ```{r war network with covariates full, results = 'hide'} 
-vBlocks <- 1:3
+vBlocks <- 1:5
 collection_sbm_power_full <- estimateMissSBM(
 	belligerent_adjacency, 
 	vBlocks = vBlocks, 
@@ -186,72 +242,14 @@ collection_sbm_power_full <- estimateMissSBM(
 ) 
 ```
 
-Note that by default, the distribution of edges depends on the covariate(s) in 
-any are included in the model. 
-
-The covariate provided as a vector is transferred on edges through an $\ell_1$ 
-similarity: for edge $(i,j)$ the associated covariate is defined by $|x_i-x_j|$ 
-where $x_i$ denotes the covariate for node $i$. Another similarity measure 
-could be provided via the option `similarity`. 
+```{r}
+collection_sbm_power_full
+```
 
 The estimated effect of the covariate is obtained through  
 
 ```{r power_effect}
 collection_sbm_power_full$bestModel$fittedSBM$covarParam
-```
-
-The covariate could be responsible for the sampling. The state with bigger 
-military power are more likely to be fully observed than the others. We will 
-simulate this sampling. An intercept is considered by default in the sampling 
-model.
-
-```{r power_sampling}
-nWar <- nrow(belligerent_adjacency)
-parameters_sample <- 600
-sampleNet_power_miss <- missSBM::observeNetwork(
-   belligerent_adjacency,
-   sampling = "covar-node",
-   parameters = parameters_sample, 
-   covariates = list(belligerent_power), 
-   intercept = -2
-  )
-observedNodes <- !is.na(rowSums(sampleNet_power_miss))
-boxplot(
-	1/(1 + exp(-cbind(1,belligerent_power) %*% c(-2, parameters_sample))) ~ observedNodes, 
-	ylab = "mil power", xlab = "observed node"
-)
-corrplot(sampleNet_power_miss, 
-  is.corr = FALSE,
-  tl.pos = "n",
-  method = "color", 
-  cl.pos = "n",
-  na.label.col = "grey",
-  mar = c(0,0,1,0)
-  )
-```
-
-Then, we can estimate the model by setting the sampling to be `covar-node`. 
-We can still choose whether to consider or not the covariate in the SBM.  
-
-```{r fit power missing,results = 'hide'}
-collection_sbm_power_miss <- estimateMissSBM(
-	sampleNet_power_miss, 
-	vBlocks = vBlocks, 
-	sampling = "covar-node", 
-	covariates = list(belligerent_power)
-)
-```
-
-Then we can access the estimated sampling parameters,   
-
-```{r estimated parameters sample}
-collection_sbm_power_miss$bestModel$fittedSampling$parameters
-```
-
-and the parameters in the SBM associated with the covariate.
-
-```{r estimated parameters SBM}
-collection_sbm_power_miss$bestModel$fittedSBM$covarParam
 ```
 
 
