@@ -162,7 +162,6 @@ where $n_g = \sum_{i=1}^{n} \hat z_{ig}$,
 $\;\; S_g = (1/n) \sum_{i=1}^{n} \hat z_{ig} (x_i - \mu_g)(x_i - \mu_g)'$, 
 
 and $z_{ig}$ have been replaced by their expected values $\hat z_{ig}$.  
-<!-- $\hat z_{ig} = \hat \pi_g f(x_i | \hat \mu_g, \hat T_g, \hat D_g) / \sum_{g=1}^{G} \hat \pi_g f(x_i | \hat \mu_g, \hat T_g, \hat D_g)$.   -->
 
 
 ## Model Estimation
@@ -231,10 +230,6 @@ based and on the **Dunn Index** for the others.
 ![](img/sim_clus.png)
 
 
-## Simulated Data
-![](img/sim_clus_k.png)
-
-
 ## Experimental Data
 ![](img/ts_rats.png)
 
@@ -274,10 +269,12 @@ Eight member of this family are available but more parsimonious models can be
 obtained by constraining certain sub-diagonals of the autoregressive matrix 
 $T_g$ to be 0.  
 
+The empirical results on the tested datasets do not show a very high performance.     
+
 
 ## Bibliografy
 
-*Paul, D. McNicholas & T. Brendan Murphy (2010), ‘Model-based clustering of longitudinal data’, The Canadian Journal of Statistics, No.1, 153–168.*
+*McNICHOLAS, Paul D., and T. Brendan MURPHY. “Model-Based Clustering of Longitudinal Data.” The Canadian Journal of Statistics / La Revue Canadienne de Statistique, vol. 38, no. 1, 2010, pp. 153–68. JSTOR*
 
 
 ##
