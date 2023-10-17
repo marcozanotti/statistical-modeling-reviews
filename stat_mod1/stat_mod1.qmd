@@ -45,7 +45,7 @@ $\epsilon_t \sim N_p(0,\Sigma)$.
 ## Example of VAR(1)
 
 A first order VAR model ($p = 1$) in two variables would be given by
-$$\begin{pmatrix} x_{1,t}\\x_{2,t} \end{pmatrix} = \begin{pmatrix} c_1\\c_2 \end{pmatrix} +  \begin{pmatrix} \pi_{11} & \pi_{12} \\ \pi_{21} & \pi_{22} \end{pmatrix} \begin{pmatrix} x_{1,t}\\x_{2,t} \end{pmatrix} + \begin{pmatrix} \epsilon_{1,t}\\\epsilon_{2,t} \end{pmatrix}$$  
+$$\begin{pmatrix} x_{1,t}\\x_{2,t} \end{pmatrix} = \begin{pmatrix} c_1\\c_2 \end{pmatrix} +  \begin{pmatrix} \pi_{11} & \pi_{12} \\ \pi_{21} & \pi_{22} \end{pmatrix} \begin{pmatrix} x_{1,t-1}\\x_{2,t-1} \end{pmatrix} + \begin{pmatrix} \epsilon_{1,t}\\\epsilon_{2,t} \end{pmatrix}$$  
 
 If, for example $\pi_{12} \neq 0$, this means that the history of $x_2$ helps 
 explaining $x_1$.  
@@ -196,8 +196,8 @@ Because of the **Fractional Marginal Likelihood** does not factorizes under a
 $VAR(G,k)$ model, the authors derived an **approximated** version that produced 
 favorable results in model inference.  
 
-Finally, MLE estimate for $\theta$ is obtained iterating between two conditional 
-estimators until convergence.  
+Finally, the estimate for $\theta$ is obtained iterating between two conditional 
+estimators until convergence (given in Lutkepohl 1993 and Lauritzen 1996).  
 
 
 

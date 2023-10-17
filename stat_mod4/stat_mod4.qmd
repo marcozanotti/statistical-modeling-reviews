@@ -15,39 +15,45 @@ format:
 
 ## Contents
 
-1. VARs
+1. Introduction
 
-2. Graphical VARs
+2. Trigonometric Modelling
 
-3. Bayesian Model Assessment for Graphical VARs
+3. Cyclic Splines Modelling
+
+4. Estimation
 
 4. Conclusions
 
 
 
-# 1. VARs
+# 1. Introduction
 
-
-## VAR Model
-
-
-
-# 2. Graphical VARs
-
-## Graphical Model
+## HMM
 
 
 
-# 3. Bayesian Graphical VARs
+# 2. Trigonometric Modelling
 
-## The $VAR(G,k)$ Problem
+## Trigonometric Modelling
 
 
 
-# 4. Conclusions
+# 3. Cyclic Splines Modelling
+
+## Cyclic Splines Modelling
+
+
+
+# 4. Estimation
+
+## Estimation
+
+
+
+# 5. Conclusions
 
 ## Conclusions
-
 
 
 

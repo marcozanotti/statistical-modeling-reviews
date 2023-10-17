@@ -8,7 +8,7 @@ install.packages("mvtnorm")
 install.packages("nlme")
 install.packages("TSdist")
 install.packages("dtwclust")
-install.packages("stat_mod2/longclust_1.2.3.tar.gz")
+install.packages("stat_mod2/longclust_1.2.3.tar.gz") # need to be installed from the binary version
 
 library(tidyverse)
 library(patchwork)
