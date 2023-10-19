@@ -13,8 +13,7 @@ Modelling.
 
 [Presentation](https://marcozanotti.github.io/statistical-modeling-reviews/stat_mod2/stat_mod2.pdf)
 
-[R Code
-(download)](https://marcozanotti.github.io/statistical-modeling-reviews/stat_mod2/longclust.R)
+[R Code](statistical-modeling-reviews/stat_mod2/longclust.R)
 
 ## Statistical Modelling 3 - Verzillo
 
@@ -27,8 +26,7 @@ Modelling.
 [R Code -
 HTML](https://marcozanotti.github.io/statistical-modeling-reviews/stat_mod4/missSBM.html)
 
-[R Code - Qmd
-(download)](https://marcozanotti.github.io/statistical-modeling-reviews/stat_mod4/missSBM.qmd)
+[R Code - Qmd](statistical-modeling-reviews/stat_mod4/missSBM.qmd)
 
 ## Bibliography
 
