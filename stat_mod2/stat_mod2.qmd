@@ -127,8 +127,8 @@ There are three different constraint that can be imposed:
 ::: {.column width="60%"}
 - Constraining $T_g$ to be equal across groups suggests that the autoregressive 
 structure is the same for all groups  
-- Constraining $D_g$ to be equal across groups suggests that the variability at 
-each time point is the same for all groups   
+- Constraining $D_g$ to be equal across groups suggests that the variability 
+is the same for all groups   
 - Imposing the isotropic constraint $D_g = \delta_g I_p$ suggests that the 
 variability is the same at all time point.
 :::
@@ -150,32 +150,33 @@ $$ \mathcal{L}_c(\pi_g, \mu_g, T_g, D_g) = \prod_{i = 1}^{n} \prod_{g = 1}^{G} (
 where $z_{ig} = 1$ if observation $i$ is in group $g$ and $z_{ig} = 0$ otherwise.  
 
 
+<!-- ## Model Estimation -->
+
+<!-- The expected value of the complete-data log-likelihood is given by  -->
+
+<!-- $Q(\pi_g, \mu_g, T_g, D_g) = \sum_{g = 1}^{G} n_g \ log(\pi_g) - \frac{np}{2} \ log(\pi) \ +$   -->
+
+<!-- $\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\; - \sum_{g = 1}^{G} \frac{n_g}{2} \ log(|D_g|) - \sum_{g = 1}^{G} \frac{n_g}{2} \ tr(T_gS_gT'_gD^{-1}_g)$   -->
+<!-- \ -->
+<!-- where $n_g = \sum_{i=1}^{n} \hat z_{ig}$,  -->
+<!-- $\;\; S_g = (1/n) \sum_{i=1}^{n} \hat z_{ig} (x_i - \mu_g)(x_i - \mu_g)'$,  -->
+
+<!-- and $z_{ig}$ have been replaced by their expected values $\hat z_{ig}$.   -->
+
+
 ## Model Estimation
 
-The expected value of the complete-data log-likelihood is given by 
+The parameter estimates are derived by maximizing the expected value of the 
+complete-data likelihood.  
 
-$Q(\pi_g, \mu_g, T_g, D_g) = \sum_{g = 1}^{G} n_g \ log(\pi_g) - \frac{np}{2} \ log(\pi) \ +$  
+- For $T_g$ and $D_g$ the estimation depends also upon the constraints imposed by 
+the model (Table 2).  
 
-$\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\; - \sum_{g = 1}^{G} \frac{n_g}{2} \ log(|D_g|) - \sum_{g = 1}^{G} \frac{n_g}{2} \ tr(T_gS_gT'_gD^{-1}_g)$  
-\
-where $n_g = \sum_{i=1}^{n} \hat z_{ig}$, 
-$\;\; S_g = (1/n) \sum_{i=1}^{n} \hat z_{ig} (x_i - \mu_g)(x_i - \mu_g)'$, 
+- The **Aitken acceleration** is used to determine the convergence of the EM 
+algorithm.  
 
-and $z_{ig}$ have been replaced by their expected values $\hat z_{ig}$.  
-
-
-## Model Estimation
-
-The parameter estimates are derived by maximizing $Q$. For $T_g$ and $D_g$ 
-the estimation depends also upon the constraints imposed by the model (Table 2).  
-
-The **Aitken acceleration** is used to provide an asymptotic estimate of the 
-log-likelihood at each iteration and this estimate is used to determine the 
-convergence of the EM algorithm.  
-
-The **Bayesian information criterion** (BIC) is used to select the best member among
-this family of Gaussian mixture models since it gives consistent estimates of 
-the number of components in a mixture model.  
+- The **Bayesian information criterion** (BIC) is used to select the best member among
+this family of Gaussian mixture models.  
 
 
 ## Constraining Sub-Diagonals
