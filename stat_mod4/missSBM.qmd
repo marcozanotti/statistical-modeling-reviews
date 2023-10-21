@@ -25,9 +25,7 @@ htmltools::img(
 knitr::opts_chunk$set(
   echo = TRUE,
   message = FALSE, 
-  warning = FALSE,
-  fig.width = 5, 
-  fig.height = 4
+  warning = FALSE
 )
 
 n_cores <- parallel::detectCores()
