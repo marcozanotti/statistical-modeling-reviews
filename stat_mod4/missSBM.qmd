@@ -50,8 +50,8 @@ existing, fully observed network according to a variety of sampling designs
 - `estimateMissSBM` a function to perform inference of SBM from a partially 
 observed under various sampling designs.  
 
-These function are based on __**R6 classes**__, with their respective fields 
-and methods.
+[**Warning**: these function are based on [**R6 CLASSES**]{style="font-size: 150%;"}, 
+with their respective fields and methods.]{style="color: red;"}  
 
 
 
