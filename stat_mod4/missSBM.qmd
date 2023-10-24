@@ -43,16 +43,26 @@ presented in ‘Barbillon, Chiquet and Tabouy’ (2022) adjusts the popular
 stochastic block model from network data observed under various missing data 
 conditions, as described in ‘Tabouy, Barbillon and Chiquet’ (2019).  
 
+The missSBM package provides the following top-level functions functions:
+
+- `observeNetwork` a function to draw a partially observe network from an 
+existing, fully observed network according to a variety of sampling designs  
+- `estimateMissSBM` a function to perform inference of SBM from a partially 
+observed under various sampling designs.  
+
+These function are based on __**R6 classes**__, with their respective fields 
+and methods.
+
 
 
 ## Setup
 
 ```{r setup}
 library(igraph)
-library(ggplot2)
+library(ggplot2) 
 library(corrplot)
 library(missSBM)
-library(future)
+library(future) # for parallel computing
 
 set.seed(1992) # set seed for reproducibility
 ```
@@ -76,10 +86,10 @@ in the network `belligerent` means that the two countries have been at war at
 least once between years 1816 to 2007. The network `belligerent` have less nodes 
 since countries which have not been at war at all are not considered.  
 There are also possible covariates on top of the network. Here the one concerned 
-with military power of the states is considered.  
-The `igraph` library is used to draw the network.
+with military power of the states is considered. The `igraph` library is used 
+to draw the network.
 
-```{r war network plot, fig.width=7,  fig.height=7}
+```{r war network plot, fig.width=7, fig.height=7}
 par(mar = c(0, 0, 0, 0))
 plot(
 	war$belligerent,
@@ -97,7 +107,28 @@ The adjacency matrix of the network can be extracted using the function `as_adj`
 
 ```{r belligerent network}
 belligerent_adjacency <- as_adj(war$belligerent, sparse = FALSE)
-belligerent_power <- war$belligerent$power # covariate info
+belligerent_adjacency[1:10, 1:5]
+```
+
+We can visualize the adjacency matrix again through the `corrplot` function.  
+
+```{r corrplot full, fig.align='center', fig.width=7, fig.height=7}
+corrplot(
+	belligerent_adjacency[1:10, 1:10], 
+  is.corr = FALSE,
+  method = "color", 
+  cl.pos = "n",
+  mar = c(0,0,1,0)
+)
+
+corrplot(
+	belligerent_adjacency, 
+  is.corr = FALSE,
+  tl.pos = "n",
+  method = "color", 
+  cl.pos = "n",
+  mar = c(0,0,1,0)
+)
 ```
 
 
@@ -118,17 +149,34 @@ specifying also the parameter p, that is the probability that the node i is
 observed. The output is an adjacency matrix with the same dimension as the 
 input, yet with additional NAs.
 
-```{r sampling node, fig.align='center'}
+```{r sampling node, fig.align='center', fig.width=7, fig.height=7}
+set.seed(1992)
 partlyObservedNet_war <- missSBM::observeNetwork(
 	adjacencyMatrix = belligerent_adjacency, 
 	sampling = "node", 
 	parameters = .8
 )
+partlyObservedNet_war[1:10, 1:5]
+```
+
+We can visualize the adjacency matrix again through the `corrplot` function. 
+This time some NAs are present.  
+
+```{r corrplot NA, fig.align='center', fig.width=7, fig.height=7}
+corrplot(
+	partlyObservedNet_war[1:10, 1:10], 
+  is.corr = FALSE,
+  method = "color", 
+  cl.pos = "n",
+  na.label.col = "grey",
+  mar = c(0,0,1,0)
+)
+
 corrplot(
 	partlyObservedNet_war, 
   is.corr = FALSE,
   tl.pos = "n",
-  method = "color", 
+	method = "color", 
   cl.pos = "n",
   na.label.col = "grey",
   mar = c(0,0,1,0)
@@ -155,7 +203,8 @@ selection. This will make the choice of the number of group/block more robust.
 To perform the estimation one just need to specify the adjacency matrix, the 
 number of blocks and the sampling scheme. The exploration type (forward, 
 backward, both or none, and number of iteration can be tuned via the `control` 
-argument).  
+argument). Via the argument `vBlocks` it is possible to specify the vector of 
+number of blocks considered in the collection.  
 
 ```{r inference full, results='hide'}
 vBlocks <- 1:5
@@ -170,17 +219,40 @@ collection_sbm_full <- estimateMissSBM(
 collection_sbm_full
 ```
 
-Via the argument `vBlocks` it is possible to specify the vector of number of 
-blocks considered in the collection.
+On the whole collection the optimization process and the ICL for different blocks
+can be explored.   
+
+```{r collection plots, fig.align='center'}
+plot(collection_sbm_full, "monitoring")
+plot(collection_sbm_full, "icl")
+```
+
+The best model is obtained via 
+
+```{r best model full}
+best_sbm_full <- collection_sbm_full$bestModel
+best_sbm_full
+```
+
+and the results of the estimation can be studied through various plotting methods    
+
+```{r best model plot, fig.align='center'}
+plot(best_sbm_full, "expected") # to plot the expected connections
+coef(best_sbm_full, "connectivity") # to extract the mean of the communities
+fitted(best_sbm_full)[1:5, 1:5] # to obtain the fitted matrix
+predict(best_sbm_full)[1:5, 1:5] # to obtain the prediction matrix
+```
+
 
 
 ### Estimation with Missing Data
 
-The same is done on the partially observed network.  
+The advantage of this package is that it allows to estimate an SBM also on the
+network with missing values in the very same way.  
 
 ```{r inference node, results='hide'}
 vBlocks <- 1:5
-collection_sbm <- estimateMissSBM(
+collection_sbm_partly <- estimateMissSBM(
 	adjacencyMatrix = partlyObservedNet_war, 
 	vBlocks = vBlocks, 
 	sampling = "node"
@@ -188,9 +260,23 @@ collection_sbm <- estimateMissSBM(
 ```
 
 ```{r}
-collection_sbm
+collection_sbm_partly
 ```
 
+The best model is again obtained via 
+
+```{r best model NA}
+best_sbm_partly <- collection_sbm_partly$bestModel
+```
+
+and the results of the estimation can be studied through various plotting methods    
+
+```{r best model NA plot, fig.align='center'}
+plot(best_sbm_partly, "imputed") # to plot the imputed connections
+coef(best_sbm_partly, "connectivity") # to extract the mean of the communities
+fitted(best_sbm_partly)[1:5, 1:5] # to obtain the fitted matrix
+predict(best_sbm_partly)[1:5, 1:5] # to obtain the estimated adjacency matrix
+```
 
 
 ### Comparison
@@ -201,7 +287,7 @@ observed network to that with missing observations.
 ```{r plot comparison full, fig.align='center'}
 rbind(
   data.frame(ICL = collection_sbm_full$ICL, nbBlocks = vBlocks, type = "full"),
-  data.frame(ICL = collection_sbm$ICL, nbBlocks = vBlocks, type = "missing")
+  data.frame(ICL = collection_sbm_partly$ICL, nbBlocks = vBlocks, type = "missing")
 ) |>  
   ggplot(aes(x = nbBlocks, y = ICL, group = type, color = type)) + 
   labs(title = "Model selection", x = "#blocks", y = "Integrated Classification Likelihood") +
@@ -209,12 +295,9 @@ rbind(
 	theme_bw()
 ```
 
-The model finally fitted on the network data can be represented thanks to a 
-plot method applying on objects with class `SBM`.
-
 ```{r plot, fig.width=7, fig.height=7, fig.align='center'}
 plot(collection_sbm_full$bestModel, type = "expected")
-plot(collection_sbm$bestModel, type = "expected")
+plot(collection_sbm_partly$bestModel, type = "expected")
 ```
 
 
@@ -231,8 +314,9 @@ where $x_i$ denotes the covariate for node $i$. Another similarity measure
 could be provided via the option `similarity`.  
 
 ```{r war network with covariates full, results = 'hide'} 
+belligerent_power <- war$belligerent$power # covariate info
 vBlocks <- 1:5
-collection_sbm_power_full <- estimateMissSBM(
+collection_sbm_full_cov <- estimateMissSBM(
 	belligerent_adjacency, 
 	vBlocks = vBlocks, 
 	sampling = "node", 
@@ -241,13 +325,22 @@ collection_sbm_power_full <- estimateMissSBM(
 ```
 
 ```{r}
-collection_sbm_power_full
+collection_sbm_full_cov
 ```
 
-The estimated effect of the covariate is obtained through  
+The estimated effect of the covariate can be explored through    
 
-```{r power_effect}
-collection_sbm_power_full$bestModel$fittedSBM$covarParam
+```{r best cov effect, fig.align='center'}
+best_sbm_full_cov <- collection_sbm_full_cov$bestModel$fittedSBM
+best_sbm_full_cov$covarEffect[1:5, 1:5] # to obtain the covariance effects
+```
+
+```{r best cov pred}
+predict(best_sbm_full_cov)[1:5, 1:5] # to obtain the estimated adjacency matrix based on covariances
+```
+
+```{r best cov plot, fig.align='center'}
+plot(best_sbm_full_cov, "expected")
 ```
 
 
