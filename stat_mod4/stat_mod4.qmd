@@ -197,10 +197,10 @@ The parameter estimates are derived:
 - Choosing **starting values** for the parameter set $\theta$ necessary to define 
 state-dependent distributions and transition probabilities
 
-- **E–step** compute conditional expectations of missing data (i.e. the latent 
+- **E–step** computes conditional expectations of missing data (i.e. the latent 
 states), given the data and current parameter values
 
-- **M–step** update parameters based on the CDLL, replacing the functions of 
+- **M–step** updates parameters based on the CDLL, replacing the functions of 
 the states by their conditional expectations calculated in the E–step
 
 The E-M steps are repeated until convergence.
