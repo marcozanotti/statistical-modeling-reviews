@@ -127,7 +127,7 @@ probability matrix
 $$\gamma_{i1}^{(t)} = logit^{-1}(τ_{ij}^{(t)}) =  \frac{ e^{\tau_{ij}^{(t)}} }{ \sum_{k = 1}^{N}e^{\tau_{ij}^{(t)}} }$$
 <!-- $$\gamma_{i1}^{(t)} = e^{\tau_{ij}^{(t)}} \big/ \sum_{k = 1}^{N}e^{\tau_{ij}^{(t)}} $$ -->
 
-and the general form of the linear predictor for $\tau_{ij}^{(t)}$ is given by
+and the general form of the linear predictor is given by  
 
 $$\tau_{ij}^{(t)} = z_t' \beta^{(ij)} = \beta_0^{(ij)} + \beta_1^{(ij)} z_{t1} + ... + \beta_p^{(ij)} z_{tp} \;\;\; (1)$$
 
@@ -148,9 +148,8 @@ Modelling this type of periodicity can be achieved by using:
 
 ## Trigonometric Modelling
 
-When the aim is to model periodic patterns in the state-transition dynamics, the 
-linear predictor (1) can be extended by including **trigonometric functions** with 
-the desired periodicity. 
+The linear predictor (1) can be extended by including **trigonometric functions** 
+with the desired periodicity. 
 $$ \tau_{ij}^{(t)} = z_t' \beta^{(ij)} + \sum_{k = 1}^{K} \ \omega_k^{(ij)} \ sin\bigg(\frac{2 \pi kt}{l} \bigg) + \sum_{k = 1}^{K} \ \psi_k^{(ij)} \ cos\bigg(\frac{2 \pi kt}{l} \bigg)$$
 
 where $l$ is the period length (i.e. number of sequential observations to 
@@ -168,7 +167,7 @@ trigonometric functions with **splines**.
 $$ \tau_{ij}^{(t)} = z_t' \beta^{(ij)} + \sum_{q = 1}^{Q} \ a_q^{(ij)} \ B_q$$
 
 where $a_q^{(ij)}$ are the scaling coefficients and $B_q$ are basis splines 
-wrapped at the desired periodicity ($l$).  
+wrapped at the desired periodicity.  
 
 A large value of $Q$ is used to guarantee sufficient flexibility and overfitting
 is avoided by including a penalty term (P-spline approach).  
