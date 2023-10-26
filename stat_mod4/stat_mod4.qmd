@@ -151,7 +151,7 @@ Modelling this type of periodicity can be achieved by using:
 When the aim is to model periodic patterns in the state-transition dynamics, the 
 linear predictor (1) can be extended by including **trigonometric functions** with 
 the desired periodicity. 
-$$ \tau_{ij}^{(t)} = z_t' \beta^{(ij)} + \sum_{k = 1}^{K} \ \omega_k^{(ij)} \ sin\bigg(\frac{2 \pi kt}{l} \bigg) + \psi_k^{(ij)} \ cos\bigg(\frac{2 \pi kt}{l} \bigg)$$
+$$ \tau_{ij}^{(t)} = z_t' \beta^{(ij)} + \sum_{k = 1}^{K} \ \omega_k^{(ij)} \ sin\bigg(\frac{2 \pi kt}{l} \bigg) + \sum_{k = 1}^{K} \ \psi_k^{(ij)} \ cos\bigg(\frac{2 \pi kt}{l} \bigg)$$
 
 where $l$ is the period length (i.e. number of sequential observations to 
 complete a cycle).  
